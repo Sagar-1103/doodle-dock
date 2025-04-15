@@ -16,7 +16,8 @@
         "DISCORD_CLIENT_SECRET",
         "NEXTAUTH_GITHUB_CLIENT_ID",
         "NEXTAUTH_GITHUB_CLIENT_SECRET",
-        "DATABASE_URL"
+        "DATABASE_URL",
+        "NODE_ENV"
       ]
     },
     "lint": {
