@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import { JWT } from "next-auth/jwt";
 import { DefaultSession, DefaultUser, NextAuthOptions, Session } from "next-auth";
 import { importJWK,JWTPayload,SignJWT } from "jose";
+import { cookies } from "next/headers";
 
 declare module "next-auth" {
   interface Session {
@@ -72,6 +73,15 @@ export const authOptions = {
         try {          
           const payload = {id:user.id,name:user.name,email:user.email,image:user.image};
           const jwt = await generateJWT(payload);
+
+          const cookieStore = await cookies();
+
+          cookieStore.set('jwtToken',jwt,{
+            httpOnly: true,
+            secure: true,
+            sameSite: 'lax',
+            path: '/',
+          })
           user.jwtToken = jwt;
         } catch (error) {
           console.log(error);

@@ -37,7 +37,7 @@ export default function Canvas({canvasRef,roomId,socket}:CanvasPropTypes){
     }
 
     return (
-        <div className={`min-h-screen overflow-hidden min-w-screen ${selectedMode==="grab"?"cursor-grabbing":selectedMode!=="view"?"cursor-crosshair":""}`}>
+        <div className={`min-h-screen bg-[rgb(16, 16, 17)] overflow-hidden min-w-screen ${selectedMode==="grab"?"cursor-grabbing":selectedMode!=="view"?"cursor-crosshair":""}`}>
             <canvas ref={canvasRef} width={windowSize.width} height={windowSize.height} ></canvas>
             <Dock selectedMode={selectedMode} changeMode={changeMode} />
         </div>

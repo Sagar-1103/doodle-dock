@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { cookies } from "next/headers";
 
 const PUBLIC_ROUTES = ["/", "/signin"];
 const PRIVATE_PREFIXES = ["/canvas/","/dashboard"];
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req });
-  console.log(token);
-  
+  const token = (await cookies()).get('jwtToken')?.value;
   const { pathname } = req.nextUrl;
-
   const isPublic = PUBLIC_ROUTES.includes(pathname);
   const isPrivate = PRIVATE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-
   if(pathname==="/canvas"){
     return NextResponse.next();
   }

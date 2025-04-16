@@ -5,9 +5,10 @@ export class CanvasEngine {
     private ctx:CanvasRenderingContext2D;
     private roomId?:string;
     private socket?:WebSocket;
-    private objects = []
+    private objects:{startX:number,startY:number,width:number,height:number}[] = []
     private selectedMode:ModeTypes = "view";
     private isPanning = false;
+    private isDrawing = false;
     private scale = 1;
     private origin = { x: 0, y: 0 };
     private start = { x: 0, y: 0 };
@@ -23,26 +24,22 @@ export class CanvasEngine {
     }
 
     private initCanvas = ()=>{
-        this.ctx.fillStyle = "black"
+        this.ctx.fillStyle = "rgb(16, 16, 17)"
         this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
     }
 
     private refreshCanvas = ()=>{
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
         this.initCanvas();
-        // this.objects.map((object)=>{
-            
-        // })
-
-        this.ctx.fillStyle = "powderblue";
-        this.ctx.fillRect(30,30,300,300);
+        this.objects.map((object)=>{
+            this.ctx.strokeStyle = "red";
+            this.ctx.strokeRect(object.startX,object.startY,object.width,object.height);
+        })
     }
 
     private getObjects = async()=>{
 
-        // this.ctx.fillStyle = "red";
-        // this.ctx.fillRect(30,30,300,300);
-        this.refreshCanvas();
+        this.draw();
     }
 
     private handleMouseDown = async(e:MouseEvent)=>{
@@ -50,9 +47,22 @@ export class CanvasEngine {
             this.isPanning=true;
             this.start = {x:e.clientX-this.origin.x,y:e.clientY-this.origin.y};
         }
+        if(this.selectedMode==="rectangle"){
+            this.isDrawing = true;
+            this.start = {x:e.clientX,y:e.clientY};
+        }
     }
 
-    private handleMouseUp = async()=>{
+    private handleMouseUp = async(e:MouseEvent)=>{
+        if(this.isDrawing){
+            if(this.selectedMode==="rectangle"){
+                const width = e.clientX - this.start.x;
+                const height = e.clientY - this.start.y;
+                this.objects.push({startX:this.start.x,startY:this.start.y,width,height});
+            this.refreshCanvas();
+            }
+        this.isDrawing = false;
+        }
         this.isPanning = false;
     }
 
@@ -61,6 +71,15 @@ export class CanvasEngine {
             this.origin.x = e.clientX - this.start.x;
             this.origin.y = e.clientY - this.start.y;
             this.draw();
+        }
+        if(this.selectedMode==="rectangle"){
+            if (this.isDrawing) {
+                const width = e.clientX - this.start.x;
+                const height = e.clientY - this.start.y;
+                this.refreshCanvas();
+                this.ctx.strokeStyle = "red";
+                this.ctx.strokeRect(this.start.x,this.start.y,width,height);
+            }
         }
     }
 
