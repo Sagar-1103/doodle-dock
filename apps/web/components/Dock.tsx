@@ -1,17 +1,21 @@
 "use client";
 
-import { ChevronRight, ChevronUp, Circle, EllipsisVertical, Eraser, HandIcon, Image, LogOut, LucideIcon, Minus, MousePointer2, Pencil, Square, Type } from "lucide-react";
+import { ChevronUp, Circle, EllipsisVertical, Eraser, HandIcon, Image, LucideIcon, Minus, MousePointer2, Pencil, Share2, Square, Type } from "lucide-react";
 import { ModeTypes } from "../types";
 import { useState } from "react";
-import Link from "next/link";
-
+import Settingbar from "./Settingbar";
+import Palette from "./Palette";
+import { CanvasEngine } from "../lib/canvas-engine";
 
 interface DockPropTypes {
     selectedMode:ModeTypes;
     changeMode:(mode:ModeTypes)=>void;
+    palette:{stroke:string,bg:string|null};
+    changePalette:({stroke,bg}:{stroke:string,bg:string|null})=>void;
+    canvasEngine:CanvasEngine | null;
 }
 
-export default function Dock({selectedMode,changeMode}:DockPropTypes){
+export default function Dock({selectedMode,changeMode,changePalette,palette,canvasEngine}:DockPropTypes){
   const [isMenuOpen,setMenuOpen] = useState(false);
     const modes:{title:ModeTypes,icon:LucideIcon}[] = [
         { title:"view",icon:MousePointer2},
@@ -25,49 +29,31 @@ export default function Dock({selectedMode,changeMode}:DockPropTypes){
         { title:"image",icon:Image},
      ]
 
-
-     const handleLogout = async()=>{
-      
-     }
-
      return (
       <>
         {/* Menu Button */}
         <div className="fixed left-2 top-2 flex gap-x-2 text-white">
         <p className="font-bold mt-0.5">Doodle Dock</p>
-          <div>
+          <div className="flex flex-col">
             <button onClick={()=>setMenuOpen(prev=>!prev)} className="my-auto hover:cursor-pointer ">
               <EllipsisVertical className={`hover:bg-[#272729]/50 hover:text-white text-gray-400 p-2 rounded-lg ${isMenuOpen && "text-white bg-[#272729]/50" }`} width={30} height={30} />
             </button>
-
             {/* Setting Side Bar */}
-            <div hidden={!isMenuOpen} className="min-h-96 min-w-48 bg-[#202025] backdrop-blur-md shadow-lg border-[1px] border-[#3f3f44]/70 rounded-md">
-              <div className="px-1 py-1 text-[13px] font-semibold text-gray-200 flex flex-col">
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5"> <p className="my-auto">Open</p> </div>
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5"> <p className="my-auto">Download</p> </div>
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5 flex "> <p className="my-auto">Export</p> <ChevronRight className="p-1 absolute right-1" /> </div>
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5"> <p className="my-auto">Find</p> </div>
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5"> <p className="my-auto">Live collaboration</p> </div>
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5"> <p className="my-auto">Reset</p> </div>
-                  <hr className="text-gray-400/20 my-1 " />
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5 flex"> <p className="my-auto">Help</p> <ChevronRight className="p-1 absolute right-1" /> </div>
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5 flex"> <p className="my-auto">Preferences</p> <ChevronRight className="p-1 absolute right-1" /> </div>
-                <div className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5 "> <p className="my-auto">Keyboard shortcuts</p> </div>
-                <hr className="text-gray-400/20 my-1 " />
-                  <button onClick={handleLogout} className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5 flex"> <p className="my-auto">Sign in</p> <LogOut className="p-1 absolute right-1" /> </button>
-                <hr className="text-gray-400/20 my-1 " />
-                <Link target="_blank" href={"https://github.com/Sagar-1103/doodle-dock"} className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5"> <p className="my-auto">Github</p> </Link>
-                <Link target="_blank" href={"https://x.com/_sagar1103_"} className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5"> <p className="my-auto">Twitter</p> </Link>
-                <Link target="_blank" href={"https://www.linkedin.com/in/sagar-shirgaonkar-ba0859270/"} className="hover:bg-gray-400/15 hover:cursor-pointer px-2 rounded-md py-1.5"> <p className="my-auto">Linkedin</p> </Link>
-              </div>
-            </div>
+            <Settingbar canvasEngine={canvasEngine} isMenuOpen={isMenuOpen} />
           </div>
-
+        </div>
+        <div>
         </div>
 
-        {/* canvas resizer */}
-        <div>
-
+        {/* Palette */}
+        <div className="fixed top-2 right-2 flex flex-col mt-1 gap-y-2" >
+          <div className="flex justify-end gap-x-3">
+          <button className="hover:cursor-pointer ">
+              <Share2 className={`hover:bg-[#272729]/50 hover:text-white text-gray-300 p-2 rounded-lg`} width={30} height={30} />
+            </button>
+        <button className="bg-blue-500 px-2 py-1 rounded-md text-white font-medium text-sm">Sign in</button>
+          </div>
+        {selectedMode!=="grab" && selectedMode!=="view" && <Palette palette={palette} changePalette={changePalette} />}
         </div>
 
         {/* Mode Selector */}

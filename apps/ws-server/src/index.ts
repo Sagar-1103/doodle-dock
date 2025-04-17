@@ -1,11 +1,96 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer,WebSocket } from "ws";
+import dotenv from "dotenv";
+import { importJWK, JWTPayload, jwtVerify } from "jose";
+dotenv.config();
 
 const wss = new WebSocketServer({port:3001});
 
-wss.on("connection",function connection(ws){
+interface User {
+    ws:WebSocket;
+    roomIds:string[]
+    userId:string;
+}
 
-    ws.on("message", async function message(data){
-        console.log("Data : ",data.toString());
+interface Data {
+    type:"join_room"|"leave_room"|"chat";
+    roomId:string;
+    message?:string;
+}
+
+const users:User[] = []
+
+const getUserId = async(token:string):Promise<string|null>=>{
+try {
+    const secret = process.env.JWT_SECRET || '';
+    const jwk = await importJWK({ k: secret, alg: 'HS256', kty: 'oct' });
+    const { payload:decoded } = await jwtVerify(token, jwk);
+    
+    if (!decoded || !(decoded as JWTPayload).id) {
+        return null;
+    }
+    
+    return (decoded as JWTPayload).id as string;
+} catch (error) {
+    console.log(error);
+    return null;
+}
+}
+
+wss.on("connection", async function connection(ws,request){
+    const url = request.url;
+    if(!url){
+        return;
+    }
+    const queryParams = new URLSearchParams(url.split('?')[1]);
+    const token = queryParams.get('token') || "";
+    const userId = await getUserId(token);
+    if(!userId){
+        ws.close();
+        return;
+    }
+
+    users.push({
+        userId,
+        ws,
+        roomIds:[]
+    });
+    
+    ws.on("message",async function message(data){
+        const parsedData:Data = JSON.parse(data.toString());
+
+        if(parsedData.type==="join_room"){
+            const user = users.find(u=>u.ws===ws);
+            if(!user) return;
+            user.roomIds.push(parsedData.roomId);
+        }
+        if(parsedData.type==="leave_room"){
+            const user = users.find(u=>u.ws===ws);
+            if(!user) return;
+            user.roomIds = user.roomIds.filter(roomId=>roomId!==parsedData.roomId);
+        }
+        if(parsedData.type==="chat"){
+            const roomId = parsedData.roomId;
+            const message = parsedData.message || "";
+            // console.log({
+            //     roomId,
+            //     message,
+            //     userId
+            // });
+            
+            // await prisma.chat.create({
+            //     data:{
+            //         roomId,
+            //         message,
+            //         userId
+            //     }
+            // })
+            
+            users.forEach((user)=>{
+                if(user.roomIds.includes(roomId)){
+                    const data:Data = {type:"chat",roomId,message}
+                    user.ws.send(JSON.stringify(data))
+                }
+            })
+        }
     })
-
 })

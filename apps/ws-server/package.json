@@ -5,18 +5,22 @@
   "scripts": {
     "build": "npx tsc -b",
     "start": "node dist/index.js",
-    "dev":"npm run build && npm run start"
+    "dev": "npm run build && npm run start"
   },
   "keywords": [],
   "author": "",
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/ws": "^8.18.1"
   },
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "ws": "^8.18.1",
-    "@repo/database": "workspace:*"
+    "@repo/database": "workspace:*",
+    "dotenv": "^16.5.0",
+    "jose": "^6.0.10",
+    "jsonwebtoken": "^9.0.2",
+    "ws": "^8.18.1"
   }
 }
