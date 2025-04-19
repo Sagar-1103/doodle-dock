@@ -2,6 +2,7 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import Canvas from "../../../../components/Canvas";
+import { CanvasProvider } from "../../../../hooks/useCanvas";
 // import { getSession } from "next-auth/react";
 
 interface CollaborativeCanvasPropTypes {
@@ -37,5 +38,9 @@ export default function CollaborativeCanvas({
 
   if (!socket) return null;
 
-  return <Canvas socket={socket} canvasRef={canvasRef} roomId={roomId} />;
+  return (
+    <CanvasProvider>
+        <Canvas socket={socket} canvasRef={canvasRef} roomId={roomId} />
+    </CanvasProvider>
+  ) 
 }

@@ -1,13 +1,13 @@
 import { ChevronRight, LogOut } from "lucide-react";
 import Link from "next/link";
-import { CanvasEngine } from "../lib/canvas-engine";
+import { useCanvas } from "../hooks/useCanvas";
 
 interface SettingbarPropTypes {
   isMenuOpen: boolean;
-  canvasEngine:CanvasEngine | null;
 }
 
-export default function Settingbar({ isMenuOpen,canvasEngine }: SettingbarPropTypes) {
+export default function Settingbar({ isMenuOpen }: SettingbarPropTypes) {
+  const {canvasEngine} = useCanvas();
   
 const settings = [
   { name: "Open", onClick: () => {}, submenu: null },

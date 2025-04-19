@@ -1,18 +1,23 @@
-import { ModeTypes } from "../types";
+import { CanvasObject, ModeTypes, PaletteTypes, Rectangle } from "../types";
+
+interface localCanvasObject {
+    isSelected:boolean;
+}
 
 export class CanvasEngine {
     private canvas:HTMLCanvasElement;
     private ctx:CanvasRenderingContext2D;
     private roomId?:string;
     private socket?:WebSocket;
-    private objects:{startX:number,startY:number,width:number,height:number,stroke:string,strokeWidth:number,bg:string|null}[] = []
-    private selectedMode:ModeTypes = "view";
+    private objects:(CanvasObject & localCanvasObject)[] = []
+    private selectedMode:ModeTypes = "select";
     private isPanning = false;
     private isDrawing = false;
     private scale = 1;
     private origin = { x: 0, y: 0 };
     private start = { x: 0, y: 0 };
-    public palette:{stroke:string,bg:string|null} = {stroke:"#ffffff",bg:null}
+    public palette:PaletteTypes = {stroke:"#ffffff",bg:null};
+    private selectedObject:localCanvasObject|null = null;
 
     constructor(canvas:HTMLCanvasElement,roomId?:string,socket?:WebSocket){
         this.canvas = canvas;
@@ -34,21 +39,29 @@ export class CanvasEngine {
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
         this.initCanvas();
         this.objects.map((object)=>{
-            this.ctx.strokeStyle = object.stroke;
-            this.ctx.lineWidth = object.strokeWidth;
-            this.ctx.strokeRect(object.startX,object.startY,object.width,object.height);
-            if(object.bg){
-                // this.ctx.fillStyle = object.bg;
-                // this.ctx.fillRect(object.startX,object.startY,object.width,object.height);
+            if(this.selectedMode==="select"){
+                this.objects.map((object)=>{
+                    this.drawRect(object);
+                    if(this.selectedObject === object){
+                        this.ctx.strokeStyle = "#60B5FF";
+                        this.ctx.lineWidth = 2/this.scale;
+                        this.ctx.strokeRect(object.startX - 10,object.startY - 10,object.width + 20,object.height + 20);
+                        }
+                    })
+            } else {
+                if(object.type==="rectangle"){
+                    this.drawRect(object);
+                }
             }
         })
     }
+    
 
     private getObjects = async()=>{
         if(!this.roomId){
             const totalObjects = localStorage.getItem('objects');
             if (totalObjects) {
-                this.objects = JSON.parse(totalObjects)   
+                this.objects = JSON.parse(totalObjects);   
             }
         }
         this.draw();
@@ -66,6 +79,13 @@ export class CanvasEngine {
             this.isPanning=true;
             this.start = {x:e.clientX-this.origin.x,y:e.clientY-this.origin.y};
         }
+        if(this.selectedMode==="select"){
+            this.isDrawing = true;
+            const rect = this.canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left - this.origin.x) / this.scale;
+            const y = (e.clientY - rect.top - this.origin.y) / this.scale;
+            this.start = { x, y };
+        }
         if(this.selectedMode==="rectangle"){
             this.isDrawing = true;
             const rect = this.canvas.getBoundingClientRect();
@@ -77,6 +97,9 @@ export class CanvasEngine {
 
     private handleMouseUp = async(e:MouseEvent)=>{
         if(this.isDrawing){
+            if(this.selectedMode==="select"){
+                this.draw();
+            }
             if(this.selectedMode==="rectangle"){
                 const rect = this.canvas.getBoundingClientRect();
                 // Convert screen coordinates to world coordinates
@@ -87,6 +110,7 @@ export class CanvasEngine {
                 const height = y - this.start.y;
                 
                 this.objects.push({
+                    type:"rectangle",
                     startX: this.start.x,
                     startY: this.start.y,
                     strokeWidth: 5 / this.scale,
@@ -94,6 +118,7 @@ export class CanvasEngine {
                     height,
                     stroke:this.palette.stroke,
                     bg:this.palette.bg,
+                    isSelected:false,
                 });
 
                 if (this.socket) {
@@ -132,6 +157,33 @@ export class CanvasEngine {
             this.origin.y = e.clientY - this.start.y;
             this.draw();
         }
+        if(this.selectedMode==="select"){
+            if (this.isDrawing) {
+                const rect = this.canvas.getBoundingClientRect();
+                // Convert screen coordinates to world coordinates
+                const x = (e.clientX - rect.left - this.origin.x) / this.scale;
+                const y = (e.clientY - rect.top - this.origin.y) / this.scale;
+                
+                const width = x - this.start.x;
+                const height = y - this.start.y;
+                
+                this.draw();
+
+                const rectangle:Rectangle = {type:"rectangle",startX:this.start.x,startY:this.start.y,width,height,stroke:"#80808080",bg:"#8080801A",strokeWidth:2/this.scale}; 
+                this.drawRect(rectangle);
+
+                this.objects.map((object)=>{
+                    const isInside = (object.startX < x + width) && (object.startX + object.width > x) && (object.startY < y + height) && (object.startY + object.height > y);  
+                    if(isInside){
+                        this.selectedObject = object;
+                        this.ctx.strokeStyle = "#60B5FF";
+                        this.ctx.lineWidth = 2/this.scale;
+                        this.ctx.strokeRect(object.startX - 10,object.startY - 10,object.width + 20,object.height + 20);
+                        }
+                    })
+            }
+        }
+        
         if(this.selectedMode==="rectangle"){
             if (this.isDrawing) {
                 const rect = this.canvas.getBoundingClientRect();
@@ -143,15 +195,34 @@ export class CanvasEngine {
                 const height = y - this.start.y;
                 
                 this.draw();
-                this.ctx.strokeStyle = this.palette.stroke;
-                this.ctx.lineWidth = 5 / this.scale;
-                this.ctx.strokeRect(this.start.x, this.start.y, width, height);
-                if(this.palette.bg){
-                    // this.ctx.fillStyle = this.palette.bg;
-                    // this.ctx.fillRect(this.start.x, this.start.y, width, height);
-                }
+
+                const rectangle:Rectangle = {type:"rectangle",startX:this.start.x,startY:this.start.y,width,height,stroke:this.palette.stroke,bg:this.palette.bg,strokeWidth:5/this.scale}; 
+                this.drawRect(rectangle);
             }
         }
+    }
+
+    public drawRect(rectangle:Rectangle){
+        this.ctx.strokeStyle = rectangle.stroke;
+        this.ctx.lineWidth = rectangle.strokeWidth;
+        this.ctx.strokeRect(rectangle.startX,rectangle.startY,rectangle.width,rectangle.height);
+        if(rectangle.bg){
+            this.ctx.fillStyle = rectangle.bg;
+            this.ctx.fillRect(rectangle.startX,rectangle.startY,rectangle.width,rectangle.height);
+        }
+    }
+
+    public drawSelection(){
+        // rx >= sx &&
+        // ry >= sy &&
+        // rx + rw <= sx + sw &&
+        // ry + rh <= sy + sh
+        // this.objects.map((object)=>{
+        //     console.log(object);
+        //     if () {
+                
+        //     }
+        // })
     }
 
     public changeSelectedMode = async(mode:ModeTypes)=>{

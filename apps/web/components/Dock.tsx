@@ -1,24 +1,16 @@
 "use client";
-
-import { ChevronUp, Circle, EllipsisVertical, Eraser, HandIcon, Image, LucideIcon, Minus, MousePointer2, Pencil, Share2, Square, Type } from "lucide-react";
+import { ChevronUp, Circle, EllipsisVertical, Eraser, HandIcon, Image, LucideIcon, Minus, MousePointer2, Pencil, Plus, Share2, Square, Type } from "lucide-react";
 import { ModeTypes } from "../types";
 import { useState } from "react";
 import Settingbar from "./Settingbar";
 import Palette from "./Palette";
-import { CanvasEngine } from "../lib/canvas-engine";
+import { useCanvas } from "../hooks/useCanvas";
 
-interface DockPropTypes {
-    selectedMode:ModeTypes;
-    changeMode:(mode:ModeTypes)=>void;
-    palette:{stroke:string,bg:string|null};
-    changePalette:({stroke,bg}:{stroke:string,bg:string|null})=>void;
-    canvasEngine:CanvasEngine | null;
-}
-
-export default function Dock({selectedMode,changeMode,changePalette,palette,canvasEngine}:DockPropTypes){
+export default function Dock(){
+  const {selectedMode,setSelectedMode,canvasEngine} = useCanvas();
   const [isMenuOpen,setMenuOpen] = useState(false);
     const modes:{title:ModeTypes,icon:LucideIcon}[] = [
-        { title:"view",icon:MousePointer2},
+        { title:"select",icon:MousePointer2},
         { title:"grab",icon:HandIcon},
         { title:"rectangle",icon:Square},
         { title:"circle",icon:Circle},
@@ -28,6 +20,11 @@ export default function Dock({selectedMode,changeMode,changePalette,palette,canv
         { title:"text",icon:Type},
         { title:"image",icon:Image},
      ]
+     
+    const changeMode = (m:ModeTypes)=>{
+      setSelectedMode(m);
+      canvasEngine?.changeSelectedMode(m);
+  }
 
      return (
       <>
@@ -39,7 +36,7 @@ export default function Dock({selectedMode,changeMode,changePalette,palette,canv
               <EllipsisVertical className={`hover:bg-[#272729]/50 hover:text-white text-gray-400 p-2 rounded-lg ${isMenuOpen && "text-white bg-[#272729]/50" }`} width={30} height={30} />
             </button>
             {/* Setting Side Bar */}
-            <Settingbar canvasEngine={canvasEngine} isMenuOpen={isMenuOpen} />
+            <Settingbar isMenuOpen={isMenuOpen} />
           </div>
         </div>
         <div>
@@ -53,7 +50,14 @@ export default function Dock({selectedMode,changeMode,changePalette,palette,canv
             </button>
         <button className="bg-blue-500 px-2 py-1 rounded-md text-white font-medium text-sm">Sign in</button>
           </div>
-        {selectedMode!=="grab" && selectedMode!=="view" && <Palette palette={palette} changePalette={changePalette} />}
+        {selectedMode!=="grab" && selectedMode!=="select" && <Palette/>}
+        </div>
+
+        {/* Canvas Resizer  */}
+        <div className="fixed justify-center rounded-lg items-center bottom-2 left-2 flex text-white bg-[#202025] backdrop-blur-md shadow-lg border-[1px] border-[#3f3f44]">
+          <button className="px-2 mx-1"><Minus width={15} height={15} /></button>
+          <button className="px-1.5 py-2 text-sm">100%</button>
+          <button className="px-2 mx-1"><Plus width={15} height={15} /></button>
         </div>
 
         {/* Mode Selector */}

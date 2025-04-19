@@ -1,10 +1,10 @@
 "use client";
 
-import { RefObject, useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { useWindowSize } from "../hooks/Window";
 import { CanvasEngine } from "../lib/canvas-engine";
 import Dock from "./Dock";
-import { ModeTypes } from "../types";
+import { useCanvas } from "../hooks/useCanvas";
 
 interface CanvasPropTypes {
     canvasRef:RefObject<HTMLCanvasElement | null>
@@ -14,10 +14,8 @@ interface CanvasPropTypes {
 
 export default function Canvas({canvasRef,roomId,socket}:CanvasPropTypes){
     const windowSize = useWindowSize();
-    const [canvasEngine,setCanvasEngine] = useState<CanvasEngine | null>(null);
-    const [selectedMode,setSelectedMode] = useState<ModeTypes>("view");
+    const {selectedMode,setCanvasEngine} = useCanvas();
     const containerRef = useRef<HTMLDivElement>(null);
-    const [palette,setPalette] = useState<{stroke:string,bg:string|null}>({stroke:"#ffffff",bg:"#00000"});
     
     useEffect(()=>{
         if(canvasRef.current && containerRef.current){
@@ -44,20 +42,10 @@ export default function Canvas({canvasRef,roomId,socket}:CanvasPropTypes){
         }
     },[canvasRef,windowSize,socket,roomId])
 
-    const changeMode = (m:ModeTypes)=>{
-        setSelectedMode(m);
-        canvasEngine?.changeSelectedMode(m);
-    }
-
-    const changePalette = ({stroke,bg}:{stroke:string,bg:string|null})=>{
-        setPalette({stroke,bg});
-        canvasEngine?.changeSelectedPalette({stroke,bg})
-    }
-
     return (
-        <div ref={containerRef} className={`min-h-screen bg-[#101011] overflow-hidden min-w-screen ${selectedMode==="grab"?"cursor-grabbing":selectedMode!=="view"?"cursor-crosshair":""}`}>
+        <div ref={containerRef} className={`min-h-screen bg-[#101011] overflow-hidden min-w-screen ${selectedMode==="grab"?"cursor-grabbing":selectedMode!=="select"?"cursor-crosshair":""}`}>
             <canvas ref={canvasRef} width={windowSize.width} height={windowSize.height} ></canvas>
-            <Dock canvasEngine={canvasEngine} palette={palette} changePalette={changePalette} selectedMode={selectedMode} changeMode={changeMode} />
+            <Dock/>
         </div>
     );
 }
