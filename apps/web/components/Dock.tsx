@@ -5,6 +5,7 @@ import { useState } from "react";
 import Settingbar from "./Settingbar";
 import Palette from "./Palette";
 import { useCanvas } from "../hooks/useCanvas";
+import { SessionProvider } from "next-auth/react";
 
 export default function Dock(){
   const {selectedMode,setSelectedMode,canvasEngine} = useCanvas();
@@ -27,7 +28,7 @@ export default function Dock(){
   }
 
      return (
-      <>
+      <SessionProvider>
         {/* Menu Button */}
         <div className="fixed left-2 top-2 flex gap-x-2 text-white">
         <p className="font-bold mt-0.5">Doodle Dock</p>
@@ -78,6 +79,6 @@ export default function Dock(){
               </p>
             </button>
         </div>
-        </>
+        </SessionProvider>
       );
 }

@@ -1,19 +1,18 @@
 export type ModeTypes = "select" | "circle" | "rectangle" | "grab" | "pencil" | "eraser" | "image" | "text" | "line";
 
-export type PaletteTypes = { stroke: string; bg: string | null };
+export type PaletteTypes = { stroke: string; bg: string | null,radii:number,lineDash:[number,number] };
 
-interface Stylable {
-  stroke: string;
-  strokeWidth: number;
-  bg: string | null;
-}
-
-export interface Rectangle extends Stylable {
+export interface Rectangle {
   type: ModeTypes;
   startX: number;
   startY: number;
   width: number;
   height: number;
+  stroke: string;
+  strokeWidth: number;
+  bg: string | null;
+  radii:number;
+  lineDash:[number,number];
 }
 
 export type CanvasObject = Rectangle;

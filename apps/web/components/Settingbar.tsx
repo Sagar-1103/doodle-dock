@@ -1,6 +1,8 @@
 import { ChevronRight, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useCanvas } from "../hooks/useCanvas";
+import { useCallback } from "react";
+import { useSession } from "next-auth/react";
 
 interface SettingbarPropTypes {
   isMenuOpen: boolean;
@@ -8,54 +10,59 @@ interface SettingbarPropTypes {
 
 export default function Settingbar({ isMenuOpen }: SettingbarPropTypes) {
   const {canvasEngine} = useCanvas();
+  const {data} = useSession();
+
+  const downloadCanvas = useCallback((type: "png" | "jpeg" | "svg", fileName = "canvas-image")=>{
+    canvasEngine?.downloadCanvas(type,fileName);
+  },[canvasEngine])
   
 const settings = [
-  { name: "Open", onClick: () => {}, submenu: null },
-  { name: "Download", onClick: () => {}, submenu: null },
+  // { name: "Open", onClick: () => {}, submenu: null },
+  // { name: "Download", onClick: () => {}, submenu: null },
   {
     name: "Export",
     onClick: null,
     submenu: [
-      { name: "SVG", onClick: () => {} },
-      { name: "PNG", onClick: () => {} },
-      { name: "Transparent", onClick: () => {} },
+      { name: "JPEG", onClick: () => {downloadCanvas("jpeg")} },
+      { name: "PNG", onClick: () => {downloadCanvas("png")} },
+      { name: "SVG", onClick: () => {downloadCanvas("svg")} },
     ],
   },
-  { name: "Find", onClick: () => {}, submenu: null },
-  { name: "Live collaboration", onClick: () => {}, submenu: null },
+  // { name: "Find", onClick: () => {}, submenu: null },
+  // { name: "Live collaboration", onClick: () => {}, submenu: null },
   { name: "Reset", onClick: () => {canvasEngine?.clearCanvas()}, submenu: null },
   { separator: true },
+  // {
+  //   name: "Help",
+  //   onClick: null,
+  //   submenu: [
+  //     { name: "Give us feedback", onClick: () => {} },
+  //     { separator: true },
+  //     { name: "About", onClick: () => {} },
+  //   ],
+  // },
+  // {
+  //   name: "Preferences",
+  //   onClick: () => {},
+  //   submenu: [
+  //     { name: "Show grid", onClick: () => {} },
+  //     { name: "Focus mode", onClick: () => {} },
+  //     { name: "Debub mode", onClick: () => {} },
+  //     { separator: true },
+  //     { name: "Theme", onClick: () => {} },
+  //   ],
+  // },
+  // { name: "Keyboard shortcuts", onClick: () => {}, submenu: null },
+  // { separator: true }, 
   {
-    name: "Help",
-    onClick: null,
-    submenu: [
-      { name: "Give us feedback", onClick: () => {} },
-      { separator: true },
-      { name: "About", onClick: () => {} },
-    ],
-  },
-  {
-    name: "Preferences",
-    onClick: () => {},
-    submenu: [
-      { name: "Show grid", onClick: () => {} },
-      { name: "Focus mode", onClick: () => {} },
-      { name: "Debub mode", onClick: () => {} },
-      { separator: true },
-      { name: "Theme", onClick: () => {} },
-    ],
-  },
-  { name: "Keyboard shortcuts", onClick: () => {}, submenu: null },
-  { separator: true },
-  {
-    name: "Sign in",
+    name: data?.jwtToken? "Sign out":"Sign in",
     onClick: () => {},
     icon: <LogOut className="p-1 absolute right-1" />,
   },
   { separator: true },
   {
     name: "Github",
-    href: "https://github.com/Sagar-1103/doodle-dock",
+    href: "https://github.com/Sagar-1103/doodle-dock"
   },
   {
     name: "Twitter",
@@ -70,7 +77,7 @@ const settings = [
   return (
     <div
       hidden={!isMenuOpen}
-      className="min-h-96 min-w-48 mt-1 bg-[#202025] backdrop-blur-md shadow-lg border border-[#3f3f44]/70 rounded-md"
+      className="min-w-48 mt-1 cursor-default bg-[#202025] backdrop-blur-md shadow-lg border border-[#3f3f44]/70 rounded-md"
     >
       <div className="px-1 py-1 text-[13px] font-semibold text-gray-200 flex flex-col">
         {settings.map((item, index) => {
