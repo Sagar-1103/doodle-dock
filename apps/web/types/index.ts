@@ -1,6 +1,6 @@
 export type ModeTypes = "select" | "circle" | "rectangle" | "grab" | "pencil" | "eraser" | "image" | "text" | "line";
 
-export type PaletteTypes = { stroke: string; bg: string | null,radii:number,lineDash:[number,number] };
+export type PaletteTypes = { stroke: string; bg: string | null,radii:number,lineDash:[number,number],fillType:"solid"|"cross"|"hatch"|"grid"|"wave"|"horizontal"};
 
 export interface Rectangle {
   type: ModeTypes;
@@ -13,6 +13,7 @@ export interface Rectangle {
   bg: string | null;
   radii:number;
   lineDash:[number,number];
+  fillType:"solid"|"cross"|"hatch"|"grid"|"wave"|"horizontal";
 }
 
 export type CanvasObject = Rectangle;

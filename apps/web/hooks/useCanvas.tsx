@@ -7,7 +7,7 @@ interface CanvasContextType {
   selectedMode: ModeTypes;
   setSelectedMode: (mode: ModeTypes) => void;
   palette: PaletteTypes;
-  setPalette: (pallete: { stroke: string; bg: string | null;radii:number,lineDash:[number,number] }) => void;
+  setPalette: (pallete: { stroke: string; bg: string | null;radii:number,lineDash:[number,number],fillType:"solid"|"cross"|"hatch"|"grid"|"wave"|"horizontal" }) => void;
   canvasEngine: CanvasEngine | null;
   setCanvasEngine: (c: CanvasEngine) => void;
 }
@@ -15,7 +15,7 @@ interface CanvasContextType {
 export const CanvasContext = createContext<CanvasContextType>({
   selectedMode: "select",
   setSelectedMode: () => {},
-  palette: { stroke: "#ffffff", bg: null,radii:70,lineDash:[0,0] },
+  palette: { stroke: "#05df72", bg: "#ffc9c9",radii:70,lineDash:[0,0],fillType:"wave" },
   setPalette: () => {},
   canvasEngine: null,
   setCanvasEngine: () => {},
@@ -24,7 +24,7 @@ export const CanvasContext = createContext<CanvasContextType>({
 export const CanvasProvider = ({ children }: { children: ReactNode }) => {
   const [selectedMode, setSelectedMode] = useState<ModeTypes>("select");
   const [palette, setPalette] = useState<PaletteTypes>(
-    { stroke: "#ffffff", bg: null,radii:70,lineDash:[0,0] }
+    { stroke: "#05df72", bg: "#ffc9c9",radii:70,lineDash:[0,0],fillType:"wave"}
   );
   const [canvasEngine, setCanvasEngine] = useState<CanvasEngine | null>(null);
 

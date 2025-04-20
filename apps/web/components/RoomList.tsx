@@ -24,6 +24,7 @@ export default function RoomList() {
       setRooms([{id: 0, slug: "Your whiteboard",adminId:res.userId },...res.rooms]);
       setUserId(res.userId);
     } catch (error) {
+      setRooms([{id: 0, slug: "Your whiteboard",adminId:"0" }]);
       console.log(error);
     } finally {
       setLoading(false);

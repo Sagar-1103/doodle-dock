@@ -16,7 +16,7 @@ export class CanvasEngine {
     private scale = 1;
     private origin = { x: 0, y: 0 };
     private start = { x: 0, y: 0 };
-    public palette:PaletteTypes = {stroke:"#ffffff",bg:null,radii:70,lineDash:[0,0]};
+    public palette:PaletteTypes = {stroke:"#05df72",bg:"#ffc9c9",radii:70,lineDash:[0,0],fillType:"wave"};
     private selectedObjects:(CanvasObject & localCanvasObject)[] = [];
     private current = { x: 0, y: 0 };
 
@@ -27,7 +27,7 @@ export class CanvasEngine {
         this.ctx = canvasContext;
         this.socket = socket;
         this.roomId = roomId;
-        this.palette = {stroke:"#ffffff",bg:null,radii:70,lineDash:[0,0]};
+        this.palette = {stroke:"#05df72",bg:"#ffc9c9",radii:70,lineDash:[0,0],fillType:"wave"};
         this.getObjects();
     }
 
@@ -71,7 +71,8 @@ export class CanvasEngine {
                 bg: "#60B5FF33",
                 strokeWidth: 1 / this.scale,
                 radii:0,
-                lineDash:[0,0]
+                lineDash:[0,0],
+                fillType:"solid",
             };
             this.drawRect(selectionRect);
         }
@@ -88,7 +89,8 @@ export class CanvasEngine {
                 bg: this.palette.bg,
                 strokeWidth: 5 / this.scale,
                 radii:this.palette.radii,
-                lineDash:this.palette.lineDash
+                lineDash:this.palette.lineDash,
+                fillType:this.palette.fillType,
             };
             this.drawRect(selectionRect);
         }
@@ -208,7 +210,8 @@ export class CanvasEngine {
                         bg: this.palette.bg,
                         isSelected: false,
                         radii:this.palette.radii,
-                        lineDash:this.palette.lineDash
+                        lineDash:this.palette.lineDash,
+                        fillType:this.palette.fillType,
                     };
                     
                     this.objects.push(newRect);
@@ -286,18 +289,127 @@ export class CanvasEngine {
         this.ctx.beginPath();
         this.ctx.roundRect(rectangle.startX,rectangle.startY,rectangle.width,rectangle.height,rectangle.radii);
         if(rectangle.bg){
-            this.ctx.fillStyle = rectangle.bg;
-            this.ctx.fill();
+            this.getObjectBackground(rectangle);
         }
         this.ctx.stroke();
+    }
+
+    private getObjectBackground(rectangle:Rectangle){
+        if(rectangle.fillType==="solid"){
+            this.ctx.fillStyle = rectangle.bg??"";
+            this.ctx.fill();
+        }
+        if(rectangle.fillType==="cross"){
+            const patternCanvas = document.createElement("canvas");
+            patternCanvas.width = 10;
+            patternCanvas.height = 10;
+            const ctxx = patternCanvas.getContext("2d");
+            if(!ctxx) return;
+            ctxx.strokeStyle = rectangle.bg??"";
+            ctxx.lineWidth = 1;
+
+            ctxx.beginPath();
+            ctxx.moveTo(0, 0);
+            ctxx.lineTo(10, 10);
+            ctxx.moveTo(0, 10);
+            ctxx.lineTo(10, 0);
+            ctxx.stroke();
+            const pattern = this.ctx.createPattern(patternCanvas, "repeat");
+            if (!pattern) return;
+            this.ctx.fillStyle = pattern;
+            this.ctx.fill();
+        }
+        if(rectangle.fillType==="wave"){
+            const patternCanvas = document.createElement("canvas");
+            patternCanvas.width = 10;
+            patternCanvas.height = 10;
+            const ctxx = patternCanvas.getContext("2d");
+            if(!ctxx) return;
+            ctxx.strokeStyle = rectangle.bg??"";
+            ctxx.lineWidth = 1;
+
+            ctxx.beginPath();
+            for (let x = 0; x <= 10; x += 2) {
+                const y = Math.sin((x / 10) * Math.PI * 2) * 3 + 10 / 2;
+                ctxx.lineTo(x, y);
+            }
+            ctxx.stroke();
+            const pattern = this.ctx.createPattern(patternCanvas, "repeat");
+            if (!pattern) return;
+            this.ctx.fillStyle = pattern;
+            this.ctx.fill();
+        }
+        if(rectangle.fillType==="grid"){
+            const patternCanvas = document.createElement("canvas");
+            patternCanvas.width = 10;
+            patternCanvas.height = 10;
+            const ctxx = patternCanvas.getContext("2d");
+            if(!ctxx) return;
+            ctxx.strokeStyle = rectangle.bg??"";
+            ctxx.lineWidth = 1;
+
+            ctxx.beginPath();
+            ctxx.moveTo(0, 0);
+            ctxx.lineTo(0, 10);
+            ctxx.moveTo(0, 0);
+            ctxx.lineTo(10, 0);
+            ctxx.stroke();
+
+            const pattern = this.ctx.createPattern(patternCanvas, "repeat");
+            if (!pattern) return;
+            this.ctx.fillStyle = pattern;
+            this.ctx.fill();
+        }
+        if(rectangle.fillType==="horizontal"){
+            const patternCanvas = document.createElement("canvas");
+            patternCanvas.width = 10;
+            patternCanvas.height = 10;
+            const ctxx = patternCanvas.getContext("2d");
+            if(!ctxx) return;
+            ctxx.strokeStyle = rectangle.bg??"";
+            ctxx.lineWidth = 1;
+
+            ctxx.beginPath();
+            ctxx.moveTo(0, 10 / 2);
+            ctxx.lineTo(10, 10 / 2);
+            ctxx.stroke();
+
+            const pattern = this.ctx.createPattern(patternCanvas, "repeat");
+            if (!pattern) return;
+            this.ctx.fillStyle = pattern;
+            this.ctx.fill();
+
+        }
+        if(rectangle.fillType==="hatch"){
+            const patternCanvas = document.createElement("canvas");
+            patternCanvas.width = 10;
+            patternCanvas.height = 10;
+    
+            const ctxx = patternCanvas.getContext("2d");
+            if(!ctxx) return;
+            ctxx.strokeStyle = rectangle.bg??"";
+            ctxx.lineWidth = 1;
+    
+            ctxx.beginPath();
+            ctxx.moveTo(0, 10);
+            ctxx.lineTo(10, 0);
+            ctxx.moveTo(-5, 5);
+            ctxx.lineTo(5, -5);
+            ctxx.stroke();
+    
+            const pattern = this.ctx.createPattern(patternCanvas, "repeat");
+            if (!pattern) return;
+            this.ctx.fillStyle = pattern;
+            this.ctx.fill();
+        }
     }
 
     public changeSelectedMode = async(mode:ModeTypes)=>{
         this.selectedMode = mode;
     }
 
-    public changeSelectedPalette = async({stroke,bg,radii,lineDash}:PaletteTypes)=>{
-        this.palette = {stroke,bg,radii,lineDash};
+    public changeSelectedPalette = async({stroke,bg,radii,lineDash,fillType}:PaletteTypes)=>{
+        this.palette = {stroke,bg,radii,lineDash,fillType};
     }
 
     private handleZoom = (e: WheelEvent) => {

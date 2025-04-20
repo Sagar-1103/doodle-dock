@@ -34,7 +34,7 @@ export default function RoomModal({ setShowModal,setRooms }:RoomModalProps) {
     } catch (error) {
       const err = error as { response?: { data?: { error?: string } } };
       setError(
-        err?.response?.data?.error || "Failed to add user. Try again later."
+        err?.response?.data?.error || "Failed to add room. Try again later."
       );
     } finally {
       setLoading(false);
