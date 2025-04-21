@@ -1,19 +1,20 @@
 import { WebSocketServer,WebSocket } from "ws";
 import dotenv from "dotenv";
 import { importJWK, JWTPayload, jwtVerify } from "jose";
+import prisma from "@repo/db/client";
 dotenv.config();
 
 const wss = new WebSocketServer({port:3001});
 
 interface User {
     ws:WebSocket;
-    roomIds:string[]
+    roomIds:number[]
     userId:string;
 }
 
 interface Data {
     type:"join_room"|"leave_room"|"chat";
-    roomId:string;
+    roomId:number;
     message?:string;
 }
 
@@ -71,21 +72,21 @@ wss.on("connection", async function connection(ws,request){
         if(parsedData.type==="chat"){
             const roomId = parsedData.roomId;
             const message = parsedData.message || "";
-            // console.log({
-            //     roomId,
-            //     message,
-            //     userId
-            // });
+            console.log({
+                roomId,
+                message,
+                userId
+            });
             
-            // await prisma.chat.create({
-            //     data:{
-            //         roomId,
-            //         message,
-            //         userId
-            //     }
-            // })
-            
-            users.forEach((user)=>{
+            await prisma.chat.create({
+                data:{
+                    roomId:Number(roomId),
+                    message,
+                    userId
+                }
+            })
+
+            users.forEach((user:any)=>{
                 if(user.roomIds.includes(roomId)){
                     const data:Data = {type:"chat",roomId,message}
                     user.ws.send(JSON.stringify(data))

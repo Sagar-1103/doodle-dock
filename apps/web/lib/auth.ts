@@ -6,6 +6,7 @@ import { JWT } from "next-auth/jwt";
 import { DefaultSession, DefaultUser, NextAuthOptions, Session } from "next-auth";
 import { importJWK,JWTPayload,SignJWT } from "jose";
 import { cookies } from "next/headers";
+import prismaClient from "./db";
 
 declare module "next-auth" {
   interface Session {
@@ -71,7 +72,17 @@ export const authOptions = {
     callbacks:{
       async signIn({user}){
         try {          
-          const payload = {id:user.id,name:user.name,email:user.email,image:user.image};
+          if(!user.email || !user.name) return false;
+          const createdUser = await prismaClient.user.upsert({
+            where:{email:user.email},
+            update:{},
+            create:{
+              email:user.email,
+              name:user.name,
+              image:user.image,
+            }
+          })
+          const payload = {id:createdUser.id};
           const jwt = await generateJWT(payload);
 
           const cookieStore = await cookies();

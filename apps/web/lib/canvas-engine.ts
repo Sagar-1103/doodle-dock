@@ -1,3 +1,4 @@
+import axios from "axios";
 import { CanvasObject, ModeTypes, PaletteTypes, Rectangle } from "../types";
 
 interface localCanvasObject {
@@ -7,7 +8,7 @@ interface localCanvasObject {
 export class CanvasEngine {
     private canvas:HTMLCanvasElement;
     private ctx:CanvasRenderingContext2D;
-    private roomId?:string;
+    private roomId?:number;
     private socket?:WebSocket;
     private objects:(CanvasObject & localCanvasObject)[] = []
     private selectedMode:ModeTypes = "select";
@@ -20,7 +21,7 @@ export class CanvasEngine {
     private selectedObjects:(CanvasObject & localCanvasObject)[] = [];
     private current = { x: 0, y: 0 };
 
-    constructor(canvas:HTMLCanvasElement,roomId?:string,socket?:WebSocket){
+    constructor(canvas:HTMLCanvasElement,roomId?:number,socket?:WebSocket){
         this.canvas = canvas;
         const canvasContext = canvas.getContext("2d");
         if(!canvasContext) throw new Error("No canvas context");
@@ -107,6 +108,17 @@ export class CanvasEngine {
                     isSelected: false
                 }));
             }
+        } else {
+            try {
+                const response = await axios.get(`/api/rooms/${this.roomId}/chats`);
+                const res = await response.data;
+                const messages = res.chats.map((chat:{i:number,roomId:number,message:string,userId:string}) => JSON.parse(chat.message));
+                this.objects = messages;
+            } catch (error) {
+                const err = error as { response?: { data?: { error?: string } } };
+                console.log(err?.response?.data?.error);
+                this.objects = [];
+            }
         }
         this.draw();
     }
@@ -117,6 +129,9 @@ export class CanvasEngine {
         }
         this.objects = [];
         this.selectedObjects = [];
+        if(this.roomId){
+            this.resetCollaborativeCanvas();
+        }
         this.draw();
     }
 
@@ -217,19 +232,11 @@ export class CanvasEngine {
                     this.objects.push(newRect);
 
                     if (this.socket) {
+                        const rect:Rectangle = {type:"rectangle",startX:this.start.x,startY:this.start.y,width,height,strokeWidth:5/this.scale,stroke:this.palette.stroke,bg:this.palette.bg,radii:this.palette.radii,lineDash:this.palette.lineDash,fillType:this.palette.fillType};
                         this.socket.send(JSON.stringify({
                             type: "chat",
                             roomId: this.roomId,
-                            message: JSON.stringify({
-                                type: "rectangle",
-                                startX: this.start.x,
-                                startY: this.start.y,
-                                width,
-                                height,
-                                strokeWidth: 5 / this.scale,
-                                stroke: this.palette.stroke,
-                                bg: this.palette.bg,
-                            })
+                            message: JSON.stringify(rect)
                         }));
                     }
                     
@@ -456,6 +463,15 @@ export class CanvasEngine {
         if (received.type==="chat") {
             this.objects.push(JSON.parse(received.message));
             this.draw();
+        }
+    }
+
+    private resetCollaborativeCanvas = async()=>{
+        try {
+            await axios.delete(`/api/rooms/${this.roomId}/chats`);
+        } catch (error) {
+            const err = error as { response?: { data?: { error?: string } } };
+            console.log(err?.response?.data?.error);
         }
     }
 

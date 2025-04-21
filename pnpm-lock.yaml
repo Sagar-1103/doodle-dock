@@ -23,9 +23,9 @@ importers:
       '@prisma/client':
         specifier: ^6.6.0
         version: 6.6.0(prisma@6.6.0(typescript@5.8.2))(typescript@5.8.2)
-      '@repo/database':
+      '@repo/db':
         specifier: workspace:*
-        version: link:../../packages/database
+        version: link:../../packages/db
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -105,9 +105,9 @@ importers:
 
   apps/ws-server:
     dependencies:
-      '@repo/database':
+      '@repo/db':
         specifier: workspace:*
-        version: link:../../packages/database
+        version: link:../../packages/db
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0
@@ -131,18 +131,21 @@ importers:
         specifier: ^8.18.1
         version: 8.18.1
 
-  packages/database:
+  packages/db:
     dependencies:
       '@prisma/client':
-        specifier: ^6.6.0
+        specifier: ^6.5.0
         version: 6.6.0(prisma@6.6.0(typescript@5.8.2))(typescript@5.8.2)
       prisma:
-        specifier: ^6.6.0
+        specifier: ^6.5.0
         version: 6.6.0(typescript@5.8.2)
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.14.0
+        version: 22.14.0
 
   packages/eslint-config:
     devDependencies:

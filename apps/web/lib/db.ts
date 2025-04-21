@@ -1,4 +1,4 @@
-import prisma from  "@repo/database/db";
+import prisma from  "@repo/db/client";
 
 const prismaSingleton = ()=>{
     return prisma;

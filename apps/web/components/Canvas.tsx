@@ -21,7 +21,8 @@ export default function Canvas({canvasRef,roomId,socket}:CanvasPropTypes){
         if(canvasRef.current && containerRef.current){
             const canvas = canvasRef.current;
             const container = containerRef.current;
-            const engine = new CanvasEngine(canvas,roomId,socket);
+            const actualRoomId = roomId?Number(roomId):undefined;
+            const engine = new CanvasEngine(canvas,actualRoomId,socket);
             setCanvasEngine(engine);
 
             engine.bindEvents();
