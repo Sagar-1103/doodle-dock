@@ -61,20 +61,30 @@ export async function GET(){
     let rooms;
     try {
         rooms = await prismaClient.room.findMany({
-            where:{
-                members:{
-                    some:{
-                        id:userId
-                    }
-                }
+            where: {
+              members: {
+                some: {
+                  id: userId,
+                },
+              },
             },
-        })
+            select: {
+              id: true,
+              slug: true,
+              adminId: true,
+              members: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  image: true,
+                },
+              },
+            },
+          });
+          
     } catch (error) {
         return NextResponse.json({ error: "Internal Server Error: Failed to fetch rooms" },{ status: 500 });
     }
-    // rooms = rooms.map((room)=>{
-    //     const isAdmin = room.adminId===payload.id;
-    //     return {...room,isAdmin};
-    // })
     return NextResponse.json({rooms,userId},{status:200});
 }

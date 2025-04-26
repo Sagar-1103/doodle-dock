@@ -1,24 +1,26 @@
 "use client";
 
-import { UserPlus } from "lucide-react";
+import { Users } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
 import { MouseEvent, useState } from "react";
 import MemberModal from "./MemberModal";
+import RoomUsers from "./RoomUsers";
 
 interface RoomPropTypes {
-  room: { slug: string; id: number; adminId: string };
+  room: { slug: string; id: number,adminId:string,members?:{id:string,name:string,email:string,image:string}[]};
   userId: string;
 }
 
 export default function Room({ room, userId }: RoomPropTypes) {
-  const isAdmin = room.adminId === userId && room.id !== 0;
+  // const isAdmin = room.adminId === userId && room.id !== 0;
   const href = room.id ? `/canvas/${room.id}` : "/canvas";
   const [modal, setModal] = useState(false);
+  const [usersModal, setUsersModal] = useState(false);
 
   const handleAdminClick = (e: MouseEvent) => {
     e.preventDefault();
-    setModal(true);
+    setUsersModal(true);
   };
 
   return (
@@ -39,16 +41,21 @@ export default function Room({ room, userId }: RoomPropTypes) {
           </p>
         </div>
 
-        {isAdmin && (
-          <button
-            onClick={handleAdminClick}
-            className="flex items-center justify-center p-2.5 rounded-full bg-transparent hover:bg-white/10 transition-opacity duration-200"
-            title="Add members to this room"
-          >
-            <UserPlus className="w-5 h-5 text-orange-400 opacity-70 group-hover:opacity-100" />
-          </button>
-        )}
+          <div className="flex">
+            { room.id!==0 && <button
+              onClick={handleAdminClick}
+              className="flex items-center justify-center p-2.5 rounded-full bg-transparent hover:bg-white/10 transition-opacity duration-200"
+              title="Add members to this room"
+            >
+              <Users className="w-5 h-5 text-orange-400 opacity-70 group-hover:opacity-100" />
+            </button>}
+          </div>
+        
       </Link>
+
+      {usersModal && (
+        <RoomUsers members={room.members} userId={userId} adminId={room.adminId} roomId={room.id} setShowAddUserModal={setModal} setUsersModal={setUsersModal} />
+      )}
 
       {modal && (
         <MemberModal roomId={room.id} setShowAddUserModal={setModal} />

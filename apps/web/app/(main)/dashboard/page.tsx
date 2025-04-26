@@ -4,7 +4,7 @@ import RoomList from "../../../components/RoomList";
 export default function Dashboard() {
   return (
     <div className="min-h-screen text-white font-sans overflow-x-hidden relative">
-      <Header />
+      <Header isAuthenticated={true} />
       <RoomList/>
     </div>
   );

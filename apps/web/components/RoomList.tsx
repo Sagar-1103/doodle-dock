@@ -9,7 +9,7 @@ import RoomModal from "./RoomModal";
 export default function RoomList() {
   const [showModal, setShowModal] = useState(false);
   const [userId,setUserId] = useState<string | null>(null);
-  const [rooms, setRooms] = useState<{ slug: string; id: number,adminId:string}[]>([]);
+  const [rooms, setRooms] = useState<{ slug: string; id: number,adminId:string,members?:{id:string,name:string,email:string,image:string}[]}[]>([]);
   const [loading,setLoading] = useState(true);
   useEffect(() => {
     getSession();
